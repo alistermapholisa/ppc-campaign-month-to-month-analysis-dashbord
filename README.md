@@ -1,4 +1,5 @@
-PPC Campaign Performance Dashboard
+#PPC Campaign Performance Dashboard
+
 A dynamic, self-updating dashboard for tracking and analyzing month-to-month PPC (Pay-Per-Click) advertising campaign performance. This dashboard pulls data from a GitHub-hosted JSON file and displays real-time metrics, trends, and comparative analysis across multiple advertising platforms.
 
 Features
