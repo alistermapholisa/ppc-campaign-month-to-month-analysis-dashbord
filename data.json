@@ -1,0 +1,62 @@
+{
+  "campaigns": [
+    {
+      "month": "January 2026",
+      "date": "2026-01-03",
+      "platforms": [
+        {
+          "name": "Facebook Main Ad",
+          "spend": 2684.29,
+          "leads": 32,
+          "followers": 0,
+          "impressions": 51723,
+          "clicks": 1612,
+          "cpl": 83.88,
+          "cpr": null,
+          "cpc": 1.66,
+          "ctr": 3.12,
+          "notes": "Lead generation campaign with strong CTR"
+        },
+        {
+          "name": "Facebook Followers Ad",
+          "spend": 703.99,
+          "leads": 0,
+          "followers": 345,
+          "impressions": 5739,
+          "clicks": 445,
+          "cpl": null,
+          "cpr": 2.04,
+          "cpc": 1.58,
+          "ctr": 7.77,
+          "notes": "Exceptional efficiency in brand building"
+        },
+        {
+          "name": "Google Ads",
+          "spend": 313.0,
+          "leads": 0,
+          "followers": 0,
+          "impressions": 1830,
+          "clicks": 33,
+          "cpl": null,
+          "cpr": null,
+          "cpc": 9.50,
+          "ctr": 1.80,
+          "notes": "High-intent traffic, tracking not yet implemented"
+        }
+      ],
+      "totalSpend": 3701.28,
+      "totalLeads": 32,
+      "totalFollowers": 345,
+      "challenges": [
+        "Google Ads conversion tracking not functional",
+        "Website stability issues",
+        "Low-quality leads from WhatsApp campaign"
+      ],
+      "recommendations": [
+        "Implement Google Tag Manager and conversion tags",
+        "Refine Google Ads keywords for high-intent searches",
+        "Implement higher-intent lead forms on Facebook"
+      ]
+    }
+  ]
+}
