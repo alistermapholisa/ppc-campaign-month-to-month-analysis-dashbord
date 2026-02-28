@@ -1,6 +1,67 @@
 {
   "campaigns": [
     {
+      "month": "February 2026",
+      "date": "2026-02-01",
+      "platforms": [
+        {
+          "name": "Facebook Main Ad",
+          "spend": 2040.15,
+          "leads": 19,
+          "followers": 0,
+          "impressions": 45000,
+          "clicks": 1200,
+          "cpl": 107.85,
+          "cpr": null,
+          "cpc": 1.70,
+          "ctr": 2.67,
+          "notes": "AI voice-over creative breakthrough - 19 leads"
+        },
+        {
+          "name": "Facebook Test Campaigns",
+          "spend": 1734.06,
+          "leads": 12,
+          "followers": 139,
+          "impressions": 22956,
+          "clicks": 638,
+          "cpl": 144.51,
+          "cpr": 12.48,
+          "cpc": 2.72,
+          "ctr": 2.78,
+          "notes": "FEB TEST BY 23 achieved exceptional R39.25 CPL"
+        },
+        {
+          "name": "Google Ads",
+          "spend": 382.00,
+          "leads": 0,
+          "followers": 0,
+          "impressions": 201,
+          "clicks": 35,
+          "cpl": null,
+          "cpr": null,
+          "cpc": 10.90,
+          "ctr": 17.41,
+          "notes": "High-intent traffic, conversion tracking not functional"
+        }
+      ],
+      "totalSpend": 6156.21,
+      "totalLeads": 28,
+      "totalFollowers": 139,
+      "challenges": [
+        "Main campaign CPL increased 29% (R83.88 → R107.85)",
+        "Follower growth declined 60% despite higher spend",
+        "Google Ads conversion tracking still not implemented",
+        "Budget efficiency decreased overall"
+      ],
+      "recommendations": [
+        "Scale 'FEB TEST BY 23' campaign - achieved R39.25 CPL (1,980% variance)",
+        "Implement A/B testing between AI voice-over and music-only creatives",
+        "Fix Google Ads conversion tracking with GTM/GA tags",
+        "Analyze follower decline and adjust targeting strategy",
+        "Consolidate budget toward highest-performing test campaigns"
+      ]
+    },
+    {
       "month": "January 2026",
       "date": "2026-01-03",
       "platforms": [
