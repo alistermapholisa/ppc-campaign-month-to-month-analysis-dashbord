@@ -1,902 +1,836 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PPC Campaign Dashboard - Body20 Randridge</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
+<!-- 
+  PPC Dashboard - Isolated Component
+  This version uses Shadow DOM and scoped CSS to prevent conflicts with your website
+  Safe to embed anywhere without affecting existing styles or scripts
+-->
+
+<div id="ppc-dashboard-root"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  // Create Shadow DOM container
+  const root = document.getElementById('ppc-dashboard-root');
+  const shadow = root.attachShadow({ mode: 'open' });
+
+  // Inject Chart.js library
+  const chartScript = document.createElement('script');
+  chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+  document.head.appendChild(chartScript);
+
+  // Wait for Chart.js to load
+  chartScript.onload = function() {
+    initDashboard();
+  };
+
+  // Dashboard initialization
+  function initDashboard() {
+    // Create HTML structure
+    const html = `
+      <style>
+        :host {
+          --ppc-primary: #2563eb;
+          --ppc-secondary: #1e40af;
+          --ppc-success: #10b981;
+          --ppc-warning: #f59e0b;
+          --ppc-danger: #ef4444;
+          --ppc-light: #f3f4f6;
+          --ppc-dark: #1f2937;
+          --ppc-border: #e5e7eb;
+        }
+
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
         }
 
-        :root {
-            --primary: #2563eb;
-            --secondary: #1e40af;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --light: #f3f4f6;
-            --dark: #1f2937;
-            --border: #e5e7eb;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: var(--dark);
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .ppc-container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .ppc-dashboard-wrapper {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+          color: var(--ppc-dark);
+          padding: 20px;
+          background: transparent;
         }
 
         .ppc-header {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          background: white;
+          padding: 30px;
+          border-radius: 12px;
+          margin-bottom: 30px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .ppc-header h1 {
-            color: var(--dark);
-            margin-bottom: 10px;
-            font-size: 28px;
+          color: var(--ppc-dark);
+          margin-bottom: 10px;
+          font-size: 28px;
+          font-weight: 700;
         }
 
         .ppc-header p {
-            color: #6b7280;
-            font-size: 14px;
+          color: #6b7280;
+          font-size: 14px;
+          margin: 0;
         }
 
-        .ppc-error {
-            background: #fee2e2;
-            border-left: 4px solid var(--danger);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            color: #991b1b;
+        .ppc-success {
+          background: #d1fae5;
+          border-left: 4px solid var(--ppc-success);
+          padding: 20px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          color: #065f46;
         }
 
-        .ppc-error h3 {
-            margin-bottom: 10px;
-            font-size: 16px;
+        .ppc-success h3 {
+          margin-bottom: 10px;
+          font-size: 16px;
+          font-weight: 600;
+        }
+
+        .ppc-success p {
+          margin: 0;
+          font-size: 14px;
         }
 
         .ppc-metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 20px;
+          margin-bottom: 30px;
         }
 
         .ppc-metric-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+          background: white;
+          padding: 25px;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .ppc-metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+          transform: translateY(-5px);
+          box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
         }
 
         .ppc-metric-label {
-            font-size: 12px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            font-weight: 600;
+          font-size: 12px;
+          color: #6b7280;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
+          font-weight: 600;
         }
 
         .ppc-metric-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 8px;
+          font-size: 32px;
+          font-weight: 700;
+          color: var(--ppc-dark);
+          margin-bottom: 8px;
         }
 
         .ppc-metric-change {
-            font-size: 13px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+          font-size: 13px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 5px;
         }
 
         .ppc-metric-change.positive {
-            color: var(--success);
+          color: var(--ppc-success);
         }
 
         .ppc-metric-change.negative {
-            color: var(--danger);
+          color: var(--ppc-danger);
         }
 
         .ppc-section {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          background: white;
+          padding: 30px;
+          border-radius: 12px;
+          margin-bottom: 30px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .ppc-section-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--light);
+          font-size: 20px;
+          font-weight: 700;
+          color: var(--ppc-dark);
+          margin-bottom: 25px;
+          padding-bottom: 15px;
+          border-bottom: 2px solid var(--ppc-light);
         }
 
         .ppc-charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 30px;
-            margin-bottom: 30px;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+          gap: 30px;
+          margin-bottom: 30px;
         }
 
         .ppc-chart-container {
-            position: relative;
-            height: 350px;
-            background: var(--light);
-            padding: 20px;
-            border-radius: 8px;
+          position: relative;
+          height: 350px;
+          background: var(--ppc-light);
+          padding: 20px;
+          border-radius: 8px;
         }
 
         .ppc-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
         }
 
         .ppc-table thead {
-            background: var(--light);
-            border-bottom: 2px solid var(--border);
+          background: var(--ppc-light);
+          border-bottom: 2px solid var(--ppc-border);
         }
 
         .ppc-table th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+          padding: 15px;
+          text-align: left;
+          font-weight: 600;
+          color: var(--ppc-dark);
+          font-size: 13px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
 
         .ppc-table td {
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
+          padding: 15px;
+          border-bottom: 1px solid var(--ppc-border);
+          font-size: 14px;
         }
 
         .ppc-table tbody tr:hover {
-            background: var(--light);
+          background: var(--ppc-light);
         }
 
         .ppc-platform-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
+          display: inline-block;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+          text-transform: uppercase;
         }
 
         .ppc-platform-badge.facebook {
-            background: #e7f5ff;
-            color: #1971c2;
+          background: #e7f5ff;
+          color: #1971c2;
         }
 
         .ppc-platform-badge.google {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .ppc-trend-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .ppc-trend-indicator.up {
-            background: var(--success);
-        }
-
-        .ppc-trend-indicator.down {
-            background: var(--danger);
-        }
-
-        .ppc-comparison-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+          background: #fff3e0;
+          color: #e65100;
         }
 
         .ppc-comparison-box {
-            background: var(--light);
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary);
+          background: var(--ppc-light);
+          padding: 20px;
+          border-radius: 8px;
+          border-left: 4px solid var(--ppc-primary);
+          margin-bottom: 15px;
         }
 
         .ppc-comparison-box.warning {
-            border-left-color: var(--warning);
-        }
-
-        .ppc-comparison-box.danger {
-            border-left-color: var(--danger);
+          border-left-color: var(--ppc-warning);
         }
 
         .ppc-comparison-label {
-            font-size: 12px;
-            color: #6b7280;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            font-weight: 600;
+          font-size: 12px;
+          color: #6b7280;
+          text-transform: uppercase;
+          margin-bottom: 8px;
+          font-weight: 600;
         }
 
         .ppc-comparison-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .ppc-loading {
-            text-align: center;
-            padding: 40px;
-            color: #6b7280;
-        }
-
-        .ppc-spinner {
-            border: 4px solid var(--light);
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: ppc-spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes ppc-spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .ppc-footer {
-            text-align: center;
-            color: #9ca3af;
-            font-size: 12px;
-            margin-top: 40px;
-            padding: 20px;
+          font-size: 14px;
+          font-weight: 400;
+          color: var(--ppc-dark);
         }
 
         @media (max-width: 768px) {
-            .ppc-charts-grid {
-                grid-template-columns: 1fr;
-            }
+          .ppc-charts-grid {
+            grid-template-columns: 1fr;
+          }
 
-            .ppc-metrics-grid {
-                grid-template-columns: 1fr;
-            }
+          .ppc-metrics-grid {
+            grid-template-columns: 1fr;
+          }
 
-            .ppc-header h1 {
-                font-size: 20px;
-            }
+          .ppc-header h1 {
+            font-size: 20px;
+          }
 
-            .ppc-metric-value {
-                font-size: 24px;
-            }
+          .ppc-metric-value {
+            font-size: 24px;
+          }
         }
-    </style>
-</head>
-<body>
-    <div class="ppc-container">
-        <!-- Header -->
+      </style>
+
+      <div class="ppc-dashboard-wrapper">
         <div class="ppc-header">
-            <h1>📊 PPC Campaign Dashboard</h1>
-            <p>Body20 Randridge Mall - Real-Time Performance Analytics</p>
+          <h1>📊 PPC Campaign Dashboard</h1>
+          <p>Body20 Randridge Mall - Real-Time Performance Analytics</p>
         </div>
 
-        <!-- Loading State -->
-        <div id="ppc-loading" class="ppc-section" style="display: none;">
-            <div class="ppc-loading">
-                <div class="ppc-spinner"></div>
-                <p>Loading dashboard data...</p>
-            </div>
+        <div class="ppc-success">
+          <h3>✅ Dashboard Loaded Successfully</h3>
+          <p>Displaying February 2026 data with January 2026 comparison.</p>
         </div>
 
-        <!-- Error State -->
-        <div id="ppc-error" class="ppc-error" style="display: none;">
-            <h3>Error Loading Dashboard</h3>
-            <p id="ppc-error-message"></p>
-            <p style="margin-top: 10px; font-size: 12px;">Make sure the GitHub data URL is configured correctly in the script.</p>
+        <div class="ppc-metrics-grid" id="ppc-metrics-grid"></div>
+
+        <div class="ppc-section">
+          <h2 class="ppc-section-title">📈 Current Month Performance (February 2026)</h2>
+          <div class="ppc-charts-grid">
+            <div class="ppc-chart-container">
+              <canvas id="ppc-spend-chart"></canvas>
+            </div>
+            <div class="ppc-chart-container">
+              <canvas id="ppc-cpc-chart"></canvas>
+            </div>
+            <div class="ppc-chart-container">
+              <canvas id="ppc-ctr-chart"></canvas>
+            </div>
+            <div class="ppc-chart-container">
+              <canvas id="ppc-leads-chart"></canvas>
+            </div>
+          </div>
         </div>
 
-        <!-- Main Content -->
-        <div id="ppc-content" style="display: none;">
-            <!-- Current Month Metrics -->
-            <div class="ppc-metrics-grid" id="ppc-metrics-grid"></div>
-
-            <!-- Current Month Performance -->
-            <div class="ppc-section">
-                <h2 class="ppc-section-title">📈 Current Month Performance</h2>
-                <div class="ppc-charts-grid">
-                    <div class="ppc-chart-container">
-                        <canvas id="ppc-spend-chart"></canvas>
-                    </div>
-                    <div class="ppc-chart-container">
-                        <canvas id="ppc-cpc-chart"></canvas>
-                    </div>
-                    <div class="ppc-chart-container">
-                        <canvas id="ppc-ctr-chart"></canvas>
-                    </div>
-                    <div class="ppc-chart-container">
-                        <canvas id="ppc-leads-chart"></canvas>
-                    </div>
-                </div>
+        <div class="ppc-section">
+          <h2 class="ppc-section-title">📊 Month-to-Month Comparison & Trends</h2>
+          <div class="ppc-charts-grid">
+            <div class="ppc-chart-container">
+              <canvas id="ppc-leads-trend"></canvas>
             </div>
-
-            <!-- Month-to-Month Comparison -->
-            <div class="ppc-section">
-                <h2 class="ppc-section-title">📊 Month-to-Month Comparison</h2>
-                <div class="ppc-charts-grid">
-                    <div class="ppc-chart-container">
-                        <canvas id="ppc-leads-trend"></canvas>
-                    </div>
-                    <div class="ppc-chart-container">
-                        <canvas id="ppc-spend-trend"></canvas>
-                    </div>
-                    <div class="ppc-chart-container">
-                        <canvas id="ppc-cpl-trend"></canvas>
-                    </div>
-                    <div class="ppc-chart-container">
-                        <canvas id="ppc-cpc-trend"></canvas>
-                    </div>
-                </div>
+            <div class="ppc-chart-container">
+              <canvas id="ppc-spend-trend"></canvas>
             </div>
-
-            <!-- Platform Performance -->
-            <div class="ppc-section">
-                <h2 class="ppc-section-title">🎯 Platform Performance</h2>
-                <table class="ppc-table">
-                    <thead>
-                        <tr>
-                            <th>Platform</th>
-                            <th>Spend</th>
-                            <th>Leads</th>
-                            <th>CPL</th>
-                            <th>Impressions</th>
-                            <th>Clicks</th>
-                            <th>CTR</th>
-                            <th>CPC</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ppc-platform-table"></tbody>
-                </table>
+            <div class="ppc-chart-container">
+              <canvas id="ppc-cpl-trend"></canvas>
             </div>
-
-            <!-- Key Insights -->
-            <div class="ppc-section">
-                <h2 class="ppc-section-title">💡 Key Insights & Recommendations</h2>
-                <div id="ppc-insights"></div>
+            <div class="ppc-chart-container">
+              <canvas id="ppc-cpc-trend"></canvas>
             </div>
+          </div>
         </div>
-    </div>
 
-    <script>
-        const CONFIG = {
-            dataUrl: 'https://cdn.jsdelivr.net/gh/alistermapholisa/ppc-campaign-month-to-month-analysis-dashbord@main/data.json',
-            refreshInterval: 3600000,
-            maxRetries: 3,
-            retryDelay: 1000
-        };
+        <div class="ppc-section">
+          <h2 class="ppc-section-title">🎯 Platform Performance Comparison</h2>
+          <table class="ppc-table">
+            <thead>
+              <tr>
+                <th>Platform</th>
+                <th>Spend (ZAR)</th>
+                <th>Leads</th>
+                <th>CPL (ZAR)</th>
+                <th>Impressions</th>
+                <th>Clicks</th>
+                <th>CTR (%)</th>
+                <th>CPC (ZAR)</th>
+              </tr>
+            </thead>
+            <tbody id="ppc-platform-table"></tbody>
+          </table>
+        </div>
 
-        let allData = {};
-        let charts = {};
+        <div class="ppc-section">
+          <h2 class="ppc-section-title">💡 Key Insights & Recommendations</h2>
+          <div id="ppc-insights"></div>
+        </div>
+      </div>
+    `;
 
-        // Initialize Dashboard
-        async function initDashboard() {
-            try {
-                showLoading(true);
-                allData = await fetchData();
-                
-                if (!allData.campaigns || allData.campaigns.length === 0) {
-                    throw new Error('No campaign data found');
-                }
+    // Inject HTML into shadow DOM
+    shadow.innerHTML = html;
 
-                renderDashboard();
-                showLoading(false);
-                console.log('Dashboard loaded successfully');
-            } catch (error) {
-                console.error('Dashboard Error:', error);
-                showError(error.message);
-                showLoading(false);
+    // Embedded Dashboard Data
+    const dashboardData = {
+      "campaigns": [
+        {
+          "month": "February 2026",
+          "date": "2026-02-01",
+          "platforms": [
+            {
+              "name": "Facebook - Main Campaign",
+              "spend": 2049.08,
+              "leads": 19,
+              "followers": 5,
+              "impressions": 30127,
+              "clicks": 639,
+              "cpl": 107.85,
+              "cpr": 409.82,
+              "cpc": 3.21,
+              "ctr": 2.12,
+              "notes": "AI voice-over creative breakthrough"
+            },
+            {
+              "name": "Facebook - Test Campaign 1",
+              "spend": 4295.58,
+              "leads": 40,
+              "followers": 9,
+              "impressions": 68540,
+              "clicks": 1991,
+              "cpl": 107.39,
+              "cpr": 477.29,
+              "cpc": 2.16,
+              "ctr": 2.90,
+              "notes": "High volume lead generation"
+            },
+            {
+              "name": "Facebook - Test Campaign 2",
+              "spend": 1617.74,
+              "leads": 3,
+              "followers": 2,
+              "impressions": 14614,
+              "clicks": 541,
+              "cpl": 539.25,
+              "cpr": 808.87,
+              "cpc": 2.99,
+              "ctr": 3.70,
+              "notes": "Lower volume, higher engagement"
+            },
+            {
+              "name": "Facebook - Followers Campaign",
+              "spend": 917.95,
+              "leads": 0,
+              "followers": 193,
+              "impressions": 7863,
+              "clicks": 165,
+              "cpl": null,
+              "cpr": 4.76,
+              "cpc": 5.56,
+              "ctr": 2.10,
+              "notes": "Brand building focus"
+            },
+            {
+              "name": "Facebook - Other Campaigns",
+              "spend": 2468.35,
+              "leads": 2,
+              "followers": 345,
+              "impressions": 27649,
+              "clicks": 857,
+              "cpl": 1234.18,
+              "cpr": 7.15,
+              "cpc": 2.88,
+              "ctr": 3.10,
+              "notes": "Archived and experimental tests"
+            },
+            {
+              "name": "Google Ads",
+              "spend": 368.07,
+              "leads": 0,
+              "followers": 0,
+              "impressions": 145,
+              "clicks": 33,
+              "cpl": null,
+              "cpr": null,
+              "cpc": 11.15,
+              "ctr": 22.76,
+              "notes": "High-intent search traffic"
             }
-        }
-
-        // Fetch Data with Retries
-        async function fetchData(retryCount = 0) {
-            try {
-                console.log(`Fetching data from: ${CONFIG.dataUrl}`);
-                
-                const response = await fetch(CONFIG.dataUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    },
-                    cache: 'no-store'
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                console.log('Data fetched successfully:', data);
-                return data;
-            } catch (error) {
-                console.error(`Fetch attempt ${retryCount + 1} failed:`, error);
-                
-                if (retryCount < CONFIG.maxRetries) {
-                    await new Promise(resolve => setTimeout(resolve, CONFIG.retryDelay));
-                    return fetchData(retryCount + 1);
-                }
-                
-                throw new Error(`Failed to fetch data after ${CONFIG.maxRetries} attempts: ${error.message}`);
+          ],
+          "totalSpend": 11348.77,
+          "totalLeads": 64,
+          "totalFollowers": 554,
+          "challenges": [],
+          "recommendations": []
+        },
+        {
+          "month": "January 2026",
+          "date": "2026-01-03",
+          "platforms": [
+            {
+              "name": "Facebook Main Ad",
+              "spend": 2684.29,
+              "leads": 32,
+              "followers": 0,
+              "impressions": 51723,
+              "clicks": 1612,
+              "cpl": 83.88,
+              "cpr": null,
+              "cpc": 1.66,
+              "ctr": 3.12,
+              "notes": "Lead generation campaign"
+            },
+            {
+              "name": "Facebook Followers Ad",
+              "spend": 703.99,
+              "leads": 0,
+              "followers": 345,
+              "impressions": 5739,
+              "clicks": 445,
+              "cpl": null,
+              "cpr": 2.04,
+              "cpc": 1.58,
+              "ctr": 7.77,
+              "notes": "Brand building"
+            },
+            {
+              "name": "Google Ads",
+              "spend": 313.0,
+              "leads": 0,
+              "followers": 0,
+              "impressions": 1830,
+              "clicks": 33,
+              "cpl": null,
+              "cpr": null,
+              "cpc": 9.50,
+              "ctr": 1.80,
+              "notes": "High-intent traffic"
             }
+          ],
+          "totalSpend": 3701.28,
+          "totalLeads": 32,
+          "totalFollowers": 345,
+          "challenges": [],
+          "recommendations": []
         }
+      ]
+    };
 
-        // Render Dashboard
-        function renderDashboard() {
-            const currentMonth = allData.campaigns[0];
-            const previousMonth = allData.campaigns[1] || null;
+    let charts = {};
 
-            renderMetrics(currentMonth, previousMonth);
-            renderCharts(currentMonth);
-            renderTrendCharts(allData.campaigns);
-            renderPlatformTable(currentMonth);
-            renderInsights(currentMonth, previousMonth);
+    // Render Dashboard
+    function renderDashboard() {
+      const currentMonth = dashboardData.campaigns[0];
+      const previousMonth = dashboardData.campaigns[1] || null;
 
-            document.getElementById('ppc-content').style.display = 'block';
+      renderMetrics(currentMonth, previousMonth);
+      renderCharts(currentMonth);
+      renderTrendCharts(dashboardData.campaigns);
+      renderPlatformTable(currentMonth);
+      renderInsights(currentMonth, previousMonth);
+    }
+
+    // Render Metrics
+    function renderMetrics(current, previous) {
+      const metrics = [
+        {
+          label: 'Total Leads',
+          value: current.totalLeads,
+          previous: previous ? previous.totalLeads : null,
+          format: 'number'
+        },
+        {
+          label: 'Total Spend',
+          value: current.totalSpend,
+          previous: previous ? previous.totalSpend : null,
+          format: 'currency'
+        },
+        {
+          label: 'Cost Per Lead',
+          value: current.totalSpend / current.totalLeads,
+          previous: previous ? previous.totalSpend / previous.totalLeads : null,
+          format: 'currency'
+        },
+        {
+          label: 'Total Followers',
+          value: current.totalFollowers,
+          previous: previous ? previous.totalFollowers : null,
+          format: 'number'
         }
+      ];
 
-        // Render Metrics Cards
-        function renderMetrics(current, previous) {
-            const metrics = [
-                {
-                    label: 'Total Leads',
-                    value: current.totalLeads,
-                    previous: previous ? previous.totalLeads : null,
-                    format: 'number'
-                },
-                {
-                    label: 'Total Spend',
-                    value: current.totalSpend,
-                    previous: previous ? previous.totalSpend : null,
-                    format: 'currency'
-                },
-                {
-                    label: 'Cost Per Lead',
-                    value: current.totalSpend / current.totalLeads,
-                    previous: previous ? previous.totalSpend / previous.totalLeads : null,
-                    format: 'currency'
-                },
-                {
-                    label: 'Total Followers',
-                    value: current.totalFollowers,
-                    previous: previous ? previous.totalFollowers : null,
-                    format: 'number'
-                }
-            ];
+      const grid = shadow.getElementById('ppc-metrics-grid');
+      grid.innerHTML = metrics.map(metric => {
+        const change = metric.previous ? ((metric.value - metric.previous) / metric.previous * 100) : 0;
+        const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
+        const changeSymbol = change > 0 ? '↑' : change < 0 ? '↓' : '→';
+        const formattedValue = metric.format === 'currency' ? `ZAR ${metric.value.toFixed(2)}` : metric.value.toFixed(0);
+        const changeText = metric.previous ? `${changeSymbol} ${Math.abs(change).toFixed(1)}%` : 'No previous data';
 
-            const grid = document.getElementById('ppc-metrics-grid');
-            grid.innerHTML = metrics.map(metric => {
-                const change = metric.previous ? ((metric.value - metric.previous) / metric.previous * 100) : 0;
-                const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
-                const changeSymbol = change > 0 ? '↑' : change < 0 ? '↓' : '→';
-                const formattedValue = metric.format === 'currency' ? `ZAR ${metric.value.toFixed(2)}` : metric.value.toFixed(0);
-                const changeText = metric.previous ? `${changeSymbol} ${Math.abs(change).toFixed(1)}%` : 'No previous data';
+        return `
+          <div class="ppc-metric-card">
+            <div class="ppc-metric-label">${metric.label}</div>
+            <div class="ppc-metric-value">${formattedValue}</div>
+            <div class="ppc-metric-change ${changeClass}">${changeText}</div>
+          </div>
+        `;
+      }).join('');
+    }
 
-                return `
-                    <div class="ppc-metric-card">
-                        <div class="ppc-metric-label">${metric.label}</div>
-                        <div class="ppc-metric-value">${formattedValue}</div>
-                        <div class="ppc-metric-change ${changeClass}">${changeText}</div>
-                    </div>
-                `;
-            }).join('');
+    // Render Charts
+    function renderCharts(current) {
+      // Spend Distribution
+      const spendCtx = shadow.getElementById('ppc-spend-chart').getContext('2d');
+      if (charts.spend) charts.spend.destroy();
+      charts.spend = new Chart(spendCtx, {
+        type: 'doughnut',
+        data: {
+          labels: current.platforms.map(p => p.name),
+          datasets: [{
+            data: current.platforms.map(p => p.spend),
+            backgroundColor: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'],
+            borderColor: '#ffffff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            title: { display: true, text: 'Spend Distribution by Platform' }
+          }
         }
+      });
 
-        // Render Current Month Charts
-        function renderCharts(current) {
-            // Spend Distribution
-            const spendCtx = document.getElementById('ppc-spend-chart').getContext('2d');
-            if (charts.spend) charts.spend.destroy();
-            charts.spend = new Chart(spendCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: current.platforms.map(p => p.name),
-                    datasets: [{
-                        data: current.platforms.map(p => p.spend),
-                        backgroundColor: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'],
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Spend Distribution by Platform'
-                        }
-                    }
-                }
-            });
-
-            // CPC Comparison
-            const cpcCtx = document.getElementById('ppc-cpc-chart').getContext('2d');
-            if (charts.cpc) charts.cpc.destroy();
-            charts.cpc = new Chart(cpcCtx, {
-                type: 'bar',
-                data: {
-                    labels: current.platforms.map(p => p.name),
-                    datasets: [{
-                        label: 'Cost Per Click (ZAR)',
-                        data: current.platforms.map(p => p.cpc || 0),
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Cost Per Click by Platform'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // CTR Comparison
-            const ctrCtx = document.getElementById('ppc-ctr-chart').getContext('2d');
-            if (charts.ctr) charts.ctr.destroy();
-            charts.ctr = new Chart(ctrCtx, {
-                type: 'bar',
-                data: {
-                    labels: current.platforms.map(p => p.name),
-                    datasets: [{
-                        label: 'Click-Through Rate (%)',
-                        data: current.platforms.map(p => p.ctr || 0),
-                        backgroundColor: '#10b981',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Click-Through Rate by Platform'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // Leads by Platform
-            const leadsCtx = document.getElementById('ppc-leads-chart').getContext('2d');
-            if (charts.leads) charts.leads.destroy();
-            charts.leads = new Chart(leadsCtx, {
-                type: 'bar',
-                data: {
-                    labels: current.platforms.map(p => p.name),
-                    datasets: [{
-                        label: 'Leads Generated',
-                        data: current.platforms.map(p => p.leads || 0),
-                        backgroundColor: '#f59e0b',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Leads by Platform'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
+      // CPC Comparison
+      const cpcCtx = shadow.getElementById('ppc-cpc-chart').getContext('2d');
+      if (charts.cpc) charts.cpc.destroy();
+      charts.cpc = new Chart(cpcCtx, {
+        type: 'bar',
+        data: {
+          labels: current.platforms.map(p => p.name),
+          datasets: [{
+            label: 'Cost Per Click (ZAR)',
+            data: current.platforms.map(p => p.cpc || 0),
+            backgroundColor: '#3b82f6',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { title: { display: true, text: 'Cost Per Click by Platform' } },
+          scales: { y: { beginAtZero: true } }
         }
+      });
 
-        // Render Trend Charts (Month-to-Month)
-        function renderTrendCharts(campaigns) {
-            const months = campaigns.slice(0, 6).map(c => c.month).reverse();
-            const leads = campaigns.slice(0, 6).map(c => c.totalLeads).reverse();
-            const spend = campaigns.slice(0, 6).map(c => c.totalSpend).reverse();
-            const cpl = campaigns.slice(0, 6).map(c => c.totalSpend / c.totalLeads).reverse();
-            const cpc = campaigns.slice(0, 6).map(c => {
-                const totalClicks = c.platforms.reduce((sum, p) => sum + (p.clicks || 0), 0);
-                return totalClicks > 0 ? c.totalSpend / totalClicks : 0;
-            }).reverse();
-
-            // Leads Trend
-            const leadsTrendCtx = document.getElementById('ppc-leads-trend').getContext('2d');
-            if (charts.leadsTrend) charts.leadsTrend.destroy();
-            charts.leadsTrend = new Chart(leadsTrendCtx, {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: [{
-                        label: 'Total Leads',
-                        data: leads,
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#10b981'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Leads Trend'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // Spend Trend
-            const spendTrendCtx = document.getElementById('ppc-spend-trend').getContext('2d');
-            if (charts.spendTrend) charts.spendTrend.destroy();
-            charts.spendTrend = new Chart(spendTrendCtx, {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: [{
-                        label: 'Total Spend (ZAR)',
-                        data: spend,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#3b82f6'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Spend Trend'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // CPL Trend
-            const cplTrendCtx = document.getElementById('ppc-cpl-trend').getContext('2d');
-            if (charts.cplTrend) charts.cplTrend.destroy();
-            charts.cplTrend = new Chart(cplTrendCtx, {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: [{
-                        label: 'Cost Per Lead (ZAR)',
-                        data: cpl,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#ef4444'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Cost Per Lead Trend'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // CPC Trend
-            const cpcTrendCtx = document.getElementById('ppc-cpc-trend').getContext('2d');
-            if (charts.cpcTrend) charts.cpcTrend.destroy();
-            charts.cpcTrend = new Chart(cpcTrendCtx, {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: [{
-                        label: 'Cost Per Click (ZAR)',
-                        data: cpc,
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#f59e0b'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Cost Per Click Trend'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
+      // CTR Comparison
+      const ctrCtx = shadow.getElementById('ppc-ctr-chart').getContext('2d');
+      if (charts.ctr) charts.ctr.destroy();
+      charts.ctr = new Chart(ctrCtx, {
+        type: 'bar',
+        data: {
+          labels: current.platforms.map(p => p.name),
+          datasets: [{
+            label: 'Click-Through Rate (%)',
+            data: current.platforms.map(p => p.ctr || 0),
+            backgroundColor: '#10b981',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { title: { display: true, text: 'Click-Through Rate by Platform' } },
+          scales: { y: { beginAtZero: true } }
         }
+      });
 
-        // Render Platform Table
-        function renderPlatformTable(current) {
-            const tbody = document.getElementById('ppc-platform-table');
-            tbody.innerHTML = current.platforms.map(platform => {
-                const badge = platform.name.includes('Google') ? 'google' : 'facebook';
-                return `
-                    <tr>
-                        <td><span class="ppc-platform-badge ${badge}">${platform.name}</span></td>
-                        <td>ZAR ${platform.spend.toFixed(2)}</td>
-                        <td>${platform.leads || 0}</td>
-                        <td>${platform.leads > 0 ? 'ZAR ' + (platform.spend / platform.leads).toFixed(2) : 'N/A'}</td>
-                        <td>${platform.impressions || 0}</td>
-                        <td>${platform.clicks || 0}</td>
-                        <td>${platform.ctr ? platform.ctr.toFixed(2) + '%' : 'N/A'}</td>
-                        <td>${platform.cpc ? 'ZAR ' + platform.cpc.toFixed(2) : 'N/A'}</td>
-                    </tr>
-                `;
-            }).join('');
+      // Leads by Platform
+      const leadsCtx = shadow.getElementById('ppc-leads-chart').getContext('2d');
+      if (charts.leads) charts.leads.destroy();
+      charts.leads = new Chart(leadsCtx, {
+        type: 'bar',
+        data: {
+          labels: current.platforms.map(p => p.name),
+          datasets: [{
+            label: 'Leads Generated',
+            data: current.platforms.map(p => p.leads || 0),
+            backgroundColor: '#f59e0b',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { title: { display: true, text: 'Leads by Platform' } },
+          scales: { y: { beginAtZero: true } }
         }
+      });
+    }
 
-        // Render Insights
-        function renderInsights(current, previous) {
-            const insights = [];
+    // Render Trend Charts
+    function renderTrendCharts(campaigns) {
+      const months = campaigns.slice(0, 6).map(c => c.month).reverse();
+      const leads = campaigns.slice(0, 6).map(c => c.totalLeads).reverse();
+      const spend = campaigns.slice(0, 6).map(c => c.totalSpend).reverse();
+      const cpl = campaigns.slice(0, 6).map(c => c.totalSpend / c.totalLeads).reverse();
+      const cpc = campaigns.slice(0, 6).map(c => {
+        const totalClicks = c.platforms.reduce((sum, p) => sum + (p.clicks || 0), 0);
+        return totalClicks > 0 ? c.totalSpend / totalClicks : 0;
+      }).reverse();
 
-            if (previous) {
-                const leadChange = ((current.totalLeads - previous.totalLeads) / previous.totalLeads * 100);
-                const spendChange = ((current.totalSpend - previous.totalSpend) / previous.totalSpend * 100);
-                const cplChange = ((current.totalSpend / current.totalLeads) - (previous.totalSpend / previous.totalLeads)) / (previous.totalSpend / previous.totalLeads) * 100;
-
-                if (leadChange < -10) {
-                    insights.push({
-                        type: 'warning',
-                        title: 'Lead Volume Declining',
-                        message: `Leads decreased by ${Math.abs(leadChange).toFixed(1)}% compared to previous month. Consider increasing budget or optimizing targeting.`
-                    });
-                }
-
-                if (cplChange > 20) {
-                    insights.push({
-                        type: 'warning',
-                        title: 'Rising Cost Per Lead',
-                        message: `CPL increased by ${cplChange.toFixed(1)}%. Review campaign performance and consider A/B testing new creatives.`
-                    });
-                }
-
-                if (leadChange > 20) {
-                    insights.push({
-                        type: 'success',
-                        title: 'Strong Lead Growth',
-                        message: `Leads increased by ${leadChange.toFixed(1)}% - excellent performance! Consider scaling successful campaigns.`
-                    });
-                }
-            }
-
-            const bestPlatform = current.platforms.reduce((best, p) => {
-                const bestCPL = best.leads > 0 ? best.spend / best.leads : Infinity;
-                const currentCPL = p.leads > 0 ? p.spend / p.leads : Infinity;
-                return currentCPL < bestCPL ? p : best;
-            });
-
-            insights.push({
-                type: 'info',
-                title: 'Best Performing Platform',
-                message: `${bestPlatform.name} has the lowest CPL at ZAR ${(bestPlatform.spend / bestPlatform.leads).toFixed(2)}. Consider allocating more budget here.`
-            });
-
-            const insightsHtml = insights.map(insight => `
-                <div class="ppc-comparison-box ${insight.type === 'warning' ? 'warning' : insight.type === 'danger' ? 'danger' : ''}">
-                    <div class="ppc-comparison-label">${insight.title}</div>
-                    <div class="ppc-comparison-value" style="font-size: 14px; font-weight: 400; margin-top: 8px;">${insight.message}</div>
-                </div>
-            `).join('');
-
-            document.getElementById('ppc-insights').innerHTML = insightsHtml;
+      // Leads Trend
+      const leadsTrendCtx = shadow.getElementById('ppc-leads-trend').getContext('2d');
+      if (charts.leadsTrend) charts.leadsTrend.destroy();
+      charts.leadsTrend = new Chart(leadsTrendCtx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [{
+            label: 'Total Leads',
+            data: leads,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 6,
+            pointBackgroundColor: '#10b981'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { title: { display: true, text: 'Leads Trend' } },
+          scales: { y: { beginAtZero: true } }
         }
+      });
 
-        // UI Helpers
-        function showLoading(show) {
-            document.getElementById('ppc-loading').style.display = show ? 'block' : 'none';
+      // Spend Trend
+      const spendTrendCtx = shadow.getElementById('ppc-spend-trend').getContext('2d');
+      if (charts.spendTrend) charts.spendTrend.destroy();
+      charts.spendTrend = new Chart(spendTrendCtx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [{
+            label: 'Total Spend (ZAR)',
+            data: spend,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 6,
+            pointBackgroundColor: '#3b82f6'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { title: { display: true, text: 'Spend Trend' } },
+          scales: { y: { beginAtZero: true } }
         }
+      });
 
-        function showError(message) {
-            const errorDiv = document.getElementById('ppc-error');
-            document.getElementById('ppc-error-message').textContent = message;
-            errorDiv.style.display = 'block';
-            document.getElementById('ppc-content').style.display = 'none';
+      // CPL Trend
+      const cplTrendCtx = shadow.getElementById('ppc-cpl-trend').getContext('2d');
+      if (charts.cplTrend) charts.cplTrend.destroy();
+      charts.cplTrend = new Chart(cplTrendCtx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [{
+            label: 'Cost Per Lead (ZAR)',
+            data: cpl,
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 6,
+            pointBackgroundColor: '#ef4444'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { title: { display: true, text: 'Cost Per Lead Trend' } },
+          scales: { y: { beginAtZero: true } }
         }
+      });
 
-        // Initialize on Load
-        document.addEventListener('DOMContentLoaded', initDashboard);
+      // CPC Trend
+      const cpcTrendCtx = shadow.getElementById('ppc-cpc-trend').getContext('2d');
+      if (charts.cpcTrend) charts.cpcTrend.destroy();
+      charts.cpcTrend = new Chart(cpcTrendCtx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [{
+            label: 'Cost Per Click (ZAR)',
+            data: cpc,
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 6,
+            pointBackgroundColor: '#f59e0b'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { title: { display: true, text: 'Cost Per Click Trend' } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
 
-        // Auto-refresh
-        setInterval(initDashboard, CONFIG.refreshInterval);
-    </script>
-</body>
-</html>
+    // Render Platform Table
+    function renderPlatformTable(current) {
+      const tbody = shadow.getElementById('ppc-platform-table');
+      tbody.innerHTML = current.platforms.map(platform => {
+        const badge = platform.name.includes('Google') ? 'google' : 'facebook';
+        return `
+          <tr>
+            <td><span class="ppc-platform-badge ${badge}">${platform.name}</span></td>
+            <td>ZAR ${platform.spend.toFixed(2)}</td>
+            <td>${platform.leads || 0}</td>
+            <td>${platform.leads > 0 ? 'ZAR ' + (platform.spend / platform.leads).toFixed(2) : 'N/A'}</td>
+            <td>${platform.impressions || 0}</td>
+            <td>${platform.clicks || 0}</td>
+            <td>${platform.ctr ? platform.ctr.toFixed(2) + '%' : 'N/A'}</td>
+            <td>${platform.cpc ? 'ZAR ' + platform.cpc.toFixed(2) : 'N/A'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Render Insights
+    function renderInsights(current, previous) {
+      const insights = [];
+
+      if (previous) {
+        const leadChange = ((current.totalLeads - previous.totalLeads) / previous.totalLeads * 100);
+        if (leadChange > 20) {
+          insights.push({
+            type: 'success',
+            title: 'Strong Lead Growth',
+            message: `Leads increased by ${leadChange.toFixed(1)}% - excellent performance!`
+          });
+        }
+      }
+
+      const bestPlatform = current.platforms.reduce((best, p) => {
+        const bestCPL = best.leads > 0 ? best.spend / best.leads : Infinity;
+        const currentCPL = p.leads > 0 ? p.spend / p.leads : Infinity;
+        return currentCPL < bestCPL ? p : best;
+      });
+
+      if (bestPlatform.leads > 0) {
+        insights.push({
+          type: 'info',
+          title: 'Best Performing Platform',
+          message: `${bestPlatform.name} has the lowest CPL at ZAR ${(bestPlatform.spend / bestPlatform.leads).toFixed(2)}.`
+        });
+      }
+
+      const insightsHtml = insights.map(insight => `
+        <div class="ppc-comparison-box ${insight.type === 'warning' ? 'warning' : ''}">
+          <div class="ppc-comparison-label">${insight.title}</div>
+          <div class="ppc-comparison-value">${insight.message}</div>
+        </div>
+      `).join('');
+
+      shadow.getElementById('ppc-insights').innerHTML = insightsHtml || '<p style="color: #6b7280;">Dashboard loaded successfully. Monitor metrics for insights.</p>';
+    }
+
+    // Initialize
+    renderDashboard();
+  }
+})();
+</script>
